@@ -12,31 +12,31 @@
 #define __RK3568_H__
 
 /* UART */
-#define UART_MMIO_BASE  0xfe650000
-#define UART0_MMIO_BASE 0xfdd50000
-#define UART1_MMIO_BASE (UART_MMIO_BASE + 0)
-#define UART2_MMIO_BASE (UART_MMIO_BASE + 0x10000)
-#define UART3_MMIO_BASE (UART_MMIO_BASE + 0x20000)
-#define UART4_MMIO_BASE (UART_MMIO_BASE + 0x30000)
-#define UART5_MMIO_BASE (UART_MMIO_BASE + 0x40000)
-#define UART6_MMIO_BASE (UART_MMIO_BASE + 0x50000)
-#define UART7_MMIO_BASE (UART_MMIO_BASE + 0x60000)
-#define UART8_MMIO_BASE (UART_MMIO_BASE + 0x70000)
-#define UART9_MMIO_BASE (UART_MMIO_BASE + 0x80000)
+/* key word: 33.4.1 internal address mapping */
+#define UART0_MMIO_BASE 0x2ad40000
+#define UART1_MMIO_BASE 0x27310000
+#define UART2_MMIO_BASE 0x2ad50000
+#define UART3_MMIO_BASE 0x2ad60000
+#define UART4_MMIO_BASE 0x2ad70000
+#define UART5_MMIO_BASE 0x2ad80000
+#define UART6_MMIO_BASE 0x2ad90000
+#define UART7_MMIO_BASE 0x2ada0000
+#define UART8_MMIO_BASE 0x2adb0000
+#define UART9_MMIO_BASE 0x2adc0000
 
 #define UART_MMIO_SIZE  0x100
 
-#define UART_IRQ_BASE   (32 + 116)
-#define UART0_IRQ       (UART_IRQ_BASE + 0)
-#define UART1_IRQ       (UART_IRQ_BASE + 1)
-#define UART2_IRQ       (UART_IRQ_BASE + 2)
-#define UART3_IRQ       (UART_IRQ_BASE + 3)
-#define UART4_IRQ       (UART_IRQ_BASE + 4)
-#define UART5_IRQ       (UART_IRQ_BASE + 5)
-#define UART6_IRQ       (UART_IRQ_BASE + 6)
-#define UART7_IRQ       (UART_IRQ_BASE + 7)
-#define UART8_IRQ       (UART_IRQ_BASE + 8)
-#define UART9_IRQ       (UART_IRQ_BASE + 9)
+/* key word: 1.3 system interrupt connection */
+#define UART0_IRQ       (32 + 76)
+#define UART1_IRQ       (32 + 77)
+#define UART2_IRQ       (32 + 78)
+#define UART3_IRQ       (32 + 79)
+#define UART4_IRQ       (32 + 80)
+#define UART5_IRQ       (32 + 81)
+#define UART6_IRQ       (32 + 82)
+#define UART7_IRQ       (32 + 83)
+#define UART8_IRQ       (32 + 84)
+#define UART9_IRQ       (32 + 85)
 
 /* GPIO */
 #define GPIO0_MMIO_BASE 0xfdd60000
@@ -88,29 +88,19 @@
 #define IRQ_ARM_IPI_KICK    0
 #define IRQ_ARM_IPI_CALL    1
 
-#define GIC_PL600_DISTRIBUTOR_PPTR      0xfd400000
-#define GIC_PL600_REDISTRIBUTOR_PPTR    0xfd460000
-#define GIC_PL600_CONTROLLER_PPTR       RT_NULL
-#define GIC_PL600_ITS_PPTR              0xfd440000
+/* key word 1.1 address mapping -> gic400 */
+#define GIC_PL400_BASE      0x2a700000
+#define GIC_PL400_GICD      (GIC_PL400_BASE + 0x1000)
+#define GIC_PL400_GICC      (GIC_PL400_BASE + 0x2000)
 
 rt_inline rt_uint32_t platform_get_gic_dist_base(void)
 {
-    return GIC_PL600_DISTRIBUTOR_PPTR;
-}
-
-rt_inline rt_uint32_t platform_get_gic_redist_base(void)
-{
-    return GIC_PL600_REDISTRIBUTOR_PPTR;
+    return GIC_PL400_GICD;
 }
 
 rt_inline rt_uint32_t platform_get_gic_cpu_base(void)
 {
-    return GIC_PL600_CONTROLLER_PPTR;
-}
-
-rt_inline rt_uint32_t platform_get_gic_its_base(void)
-{
-    return GIC_PL600_ITS_PPTR;
+    return GIC_PL400_GICC;
 }
 
 #endif /* __RK3568_H__ */

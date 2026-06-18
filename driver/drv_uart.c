@@ -45,6 +45,7 @@
 #define UART_LSR            5    /* In: Line Status Register */
 #define UART_LSR_BI         0x10 /* Break interrupt indicator */
 #define UART_LSR_DR         0x01 /* Receiver data ready */
+#define UART_LSR_THRE       0x20 /* Transmit holding register empty */
 
 #define UART_IIR            2    /* In: Interrupt ID Register */
 #define UART_IIR_NO_INT     0x01 /* No interrupts pending */
@@ -115,6 +116,10 @@ BSP_DEFINE_UART_DEVICE(8);
 #ifdef RT_USING_UART9
 BSP_DEFINE_UART_DEVICE(9);
 #endif
+
+
+/*******************************************************************************/
+/* static fun */
 
 rt_inline rt_uint32_t dw8250_read32(rt_ubase_t addr, rt_ubase_t offset)
 {
@@ -224,7 +229,7 @@ static int dw8250_uart_putc(struct rt_serial_device *serial, char c)
     uart = (struct hw_uart_device *)serial->parent.user_data;
     base = uart->hw_base;
 
-    while ((dw8250_read32(base, UART_USR) & 0x2) == 0)
+    while ((dw8250_read32(base, UART_LSR) & UART_LSR_THRE) == 0)
     {
     }
 
@@ -299,6 +304,13 @@ static void rt_hw_uart_isr(int irqno, void *param)
         return;
     }
 }
+
+/* static fun */
+/*******************************************************************************/
+
+
+
+
 
 int rt_hw_uart_init(void)
 {

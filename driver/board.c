@@ -13,7 +13,7 @@
 
 #include <mmu.h>
 #include <psci.h>
-#include <gicv3.h>
+#include <gic.h>
 #include <gtimer.h>
 #include <cpuport.h>
 #include <interrupt.h>
@@ -23,11 +23,12 @@
 
 struct mem_desc platform_mem_desc[] =
 {
-    {0x200000, 0x80000000, 0x200000, NORMAL_MEM},
-    {UART0_MMIO_BASE, UART0_MMIO_BASE + 0x10000, UART0_MMIO_BASE, DEVICE_MEM},
-    {UART1_MMIO_BASE, UART1_MMIO_BASE + 0x90000, UART1_MMIO_BASE, DEVICE_MEM},
-    {GIC_PL600_DISTRIBUTOR_PPTR, GIC_PL600_DISTRIBUTOR_PPTR + 0x10000, GIC_PL600_DISTRIBUTOR_PPTR, DEVICE_MEM},
-    {GIC_PL600_REDISTRIBUTOR_PPTR, GIC_PL600_REDISTRIBUTOR_PPTR + 0xc0000, GIC_PL600_REDISTRIBUTOR_PPTR, DEVICE_MEM},
+    {0x40000000,        0x80000000,                 0x40000000,         NORMAL_MEM},
+    {UART0_MMIO_BASE,   UART0_MMIO_BASE + 0x10000,  UART0_MMIO_BASE,    DEVICE_MEM},
+    {UART1_MMIO_BASE,   UART1_MMIO_BASE + 0x10000,  UART1_MMIO_BASE,    DEVICE_MEM},
+    {UART2_MMIO_BASE,   UART2_MMIO_BASE + 0x80000,  UART2_MMIO_BASE,    DEVICE_MEM},
+    {GIC_PL400_GICD,    GIC_PL400_GICD  + 0x10000,  GIC_PL400_GICD,     DEVICE_MEM},
+    {GIC_PL400_GICC,    GIC_PL400_GICC  + 0x10000,  GIC_PL400_GICC,     DEVICE_MEM},
 };
 
 const rt_uint32_t platform_mem_desc_size = sizeof(platform_mem_desc) / sizeof(platform_mem_desc[0]);
@@ -107,7 +108,6 @@ void secondary_cpu_c_start(void)
     rt_hw_spin_lock(&_cpus_lock);
 
     arm_gic_cpu_init(0, platform_get_gic_cpu_base());
-    arm_gic_redist_init(0, platform_get_gic_redist_base());
     rt_hw_vector_init();
     rt_hw_gtimer_local_enable();
     arm_gic_umask(0, IRQ_ARM_IPI_KICK);

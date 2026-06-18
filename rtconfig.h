@@ -51,7 +51,7 @@
 #define RT_USING_DEVICE_OPS
 #define RT_USING_CONSOLE
 #define RT_CONSOLEBUF_SIZE 128
-#define RT_CONSOLE_DEVICE_NAME "uart2"
+#define RT_CONSOLE_DEVICE_NAME "uart0"
 #define RT_VER_NUM 0x40101
 #define ARCH_CPU_64BIT
 #define ARCH_ARMV8
@@ -196,8 +196,8 @@
 /* Hardware Drivers Config */
 
 #define BSP_USING_UART
-#define RT_USING_UART2
+#define RT_USING_UART0
 #define BSP_USING_GIC
-#define BSP_USING_GICV3
+#define BSP_USING_GICV2
 
 #endif
