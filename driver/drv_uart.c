@@ -1,146 +1,167 @@
-/*
- * Copyright (c) 2006-2022, RT-Thread Development Team
- *
- * SPDX-License-Identifier: Apache-2.0
- *
- * Change Logs:
- * Date           Author       Notes
- * 2022-3-08      GuEe-GUI     the first version
- */
-
 #include <rthw.h>
 #include <rtthread.h>
 #include <rtdevice.h>
 
 #include <board.h>
 
-/*
- * The Synopsys DesignWare 8250 has an extra feature whereby it detects if the
- * LCR is written whilst busy. If it is, then a busy detect interrupt is
- * raised, the LCR needs to be rewritten and the uart status register read.
- */
 
-#define UART_RX             0    /* In: Receive buffer */
-#define UART_TX             0    /* Out: Transmit buffer */
+#define UART_RX             0       /* In: Receive buffer */
+#define UART_TX             0       /* Out: Transmit buffer */
 
-#define UART_DLL            0    /* Out: Divisor Latch Low */
-#define UART_DLM            1    /* Out: Divisor Latch High */
+#define UART_DLL            0       /* Out: Divisor Latch Low */
+#define UART_DLM            1       /* Out: Divisor Latch High */
 
-#define UART_IER            1    /* Out: Interrupt Enable Register */
-#define UART_IER_RDI        0x01 /* Enable receiver data interrupt */
+#define UART_IER            1       /* Out: Interrupt Enable Register */
+#define UART_IER_RDI        0x01    /* Enable receiver data interrupt */
 
-#define UART_SSR            0x22 /* In: Software Reset Register */
-#define UART_USR            0x1f /* UART Status Register */
+#define UART_SSR            0x22    /* In: Software Reset Register */
+#define UART_USR            0x1f    /* UART Status Register */
 
-#define UART_LCR            3    /* Out: Line Control Register */
-#define UART_LCR_DLAB       0x80 /* Divisor latch access bit */
-#define UART_LCR_SPAR       0x20 /* Stick parity (?) */
-#define UART_LCR_PARITY     0x8  /* Parity Enable */
-#define UART_LCR_STOP       0x4  /* Stop bits: 0=1 bit, 1=2 bits */
-#define UART_LCR_WLEN8      0x3  /* Wordlength: 8 bits */
+#define UART_LCR            3       /* Out: Line Control Register */
+#define UART_LCR_DLAB       0x80    /* Divisor latch access bit */
+#define UART_LCR_SPAR       0x20    /* Stick parity (?) */
+#define UART_LCR_PARITY     0x8     /* Parity Enable */
+#define UART_LCR_STOP       0x4     /* Stop bits: 0=1 bit, 1=2 bits */
+#define UART_LCR_WLEN8      0x3     /* Wordlength: 8 bits */
 
-#define UART_MCR            4    /* Out: Modem Control Register */
-#define UART_MCR_RTS        0x02 /* RTS complement */
+#define UART_MCR            4       /* Out: Modem Control Register */
+#define UART_MCR_RTS        0x02    /* RTS complement */
 
-#define UART_LSR            5    /* In: Line Status Register */
-#define UART_LSR_BI         0x10 /* Break interrupt indicator */
-#define UART_LSR_DR         0x01 /* Receiver data ready */
-#define UART_LSR_THRE       0x20 /* Transmit holding register empty */
+#define UART_LSR            5       /* In: Line Status Register */
+#define UART_LSR_BI         0x10    /* Break interrupt indicator */
+#define UART_LSR_DR         0x01    /* Receiver data ready */
+#define UART_LSR_THRE       0x20    /* Transmit holding register empty */
 
-#define UART_IIR            2    /* In: Interrupt ID Register */
-#define UART_IIR_NO_INT     0x01 /* No interrupts pending */
-#define UART_IIR_BUSY       0x07 /* DesignWare APB Busy Detect */
-#define UART_IIR_RX_TIMEOUT 0x0c /* OMAP RX Timeout interrupt */
+#define UART_IIR            2       /* In: Interrupt ID Register */
+#define UART_IIR_NO_INT     0x01    /* No interrupts pending */
+#define UART_IIR_BUSY       0x07    /* DesignWare APB Busy Detect */
+#define UART_IIR_RX_TIMEOUT 0x0c    /* OMAP RX Timeout interrupt */
 
-#define UART_FCR            2    /* Out: FIFO Control Register */
-#define UART_FCR_EN_FIFO    0x01 /* Enable the FIFO */
-#define UART_FCR_CLEAR_RCVR 0x02 /* Clear the RCVR FIFO */
-#define UART_FCR_CLEAR_XMIT 0x04 /* Clear the XMIT FIFO */
+#define UART_FCR            2       /* Out: FIFO Control Register */
+#define UART_FCR_EN_FIFO    0x01    /* Enable the FIFO */
+#define UART_FCR_CLEAR_RCVR 0x02    /* Clear the RCVR FIFO */
+#define UART_FCR_CLEAR_XMIT 0x04    /* Clear the XMIT FIFO */
 
-#define UART_REG_SHIFT      0x2  /* Register Shift*/
+#define UART_REG_SHIFT      0x2     /* Register Shift*/
 #define UART_INPUT_CLK      24000000
 
-struct hw_uart_device
-{
-    rt_ubase_t hw_base;
-    rt_uint32_t irqno;
-#ifdef RT_USING_SMP
-    struct rt_spinlock spinlock;
-#endif
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+struct hw_uart_device {
+    rt_ubase_t   hw_base;
+    rt_uint32_t  irqno;
+    const char  *name;
 };
 
-#define BSP_DEFINE_UART_DEVICE(no)                  \
-static struct hw_uart_device _uart##no##_device =   \
-{                                                   \
-    UART##no##_MMIO_BASE,                           \
-    UART##no##_IRQ                                  \
-};                                                  \
-static struct rt_serial_device _serial##no;
 
+static struct hw_uart_device   uart_devs[] = {
 #ifdef RT_USING_UART0
-BSP_DEFINE_UART_DEVICE(0);
+    {
+        .hw_base = UART0_MMIO_BASE,
+        .irqno = UART0_IRQ,
+        .name = "uart0",
+    },
 #endif
-
 #ifdef RT_USING_UART1
-BSP_DEFINE_UART_DEVICE(1);
+    {
+        .hw_base = UART1_MMIO_BASE,
+        .irqno   = UART1_IRQ,
+        .name = "uart1",
+    },
 #endif
-
 #ifdef RT_USING_UART2
-BSP_DEFINE_UART_DEVICE(2);
+    {
+        .hw_base = UART2_MMIO_BASE,
+        .irqno = UART2_IRQ,
+        .name = "uart2",
+    },
 #endif
-
 #ifdef RT_USING_UART3
-BSP_DEFINE_UART_DEVICE(3);
+    {
+        .hw_base = UART3_MMIO_BASE,
+        .irqno   = UART3_IRQ,
+        .name = "uart3",
+    },
 #endif
-
 #ifdef RT_USING_UART4
-BSP_DEFINE_UART_DEVICE(4);
+    {
+        .hw_base = UART4_MMIO_BASE,
+        .irqno   = UART4_IRQ,
+        .name = "uart4",
+    },
 #endif
-
 #ifdef RT_USING_UART5
-BSP_DEFINE_UART_DEVICE(5);
+    {
+        .hw_base = UART5_MMIO_BASE,
+        .irqno   = UART5_IRQ,
+        .name = "uart5",
+    },
 #endif
-
 #ifdef RT_USING_UART6
-BSP_DEFINE_UART_DEVICE(6);
+    {
+        .hw_base = UART6_MMIO_BASE,
+        .irqno   = UART6_IRQ,
+        .name = "uart6",
+    },
 #endif
-
 #ifdef RT_USING_UART7
-BSP_DEFINE_UART_DEVICE(7);
+    {
+        .hw_base = UART7_MMIO_BASE,
+        .irqno   = UART7_IRQ,
+        .name = "uart7",
+    },
 #endif
-
 #ifdef RT_USING_UART8
-BSP_DEFINE_UART_DEVICE(8);
+    {
+        .hw_base = UART8_MMIO_BASE,
+        .irqno   = UART8_IRQ,
+        .name = "uart8",
+    },
 #endif
-
 #ifdef RT_USING_UART9
-BSP_DEFINE_UART_DEVICE(9);
+    {
+        .hw_base = UART9_MMIO_BASE,
+        .irqno   = UART9_IRQ,
+        .name = "uart9",
+    },
 #endif
-
+#ifdef RT_USING_UART10
+    {
+        .hw_base = UART10_MMIO_BASE,
+        .irqno   = UART10_IRQ,
+        .name = "uart10",
+    },
+#endif
+#ifdef RT_USING_UART11
+    {
+        .hw_base = UART11_MMIO_BASE,
+        .irqno  = UART11_IRQ,
+        .name = "uart11",
+    },
+#endif
+};
+static struct rt_serial_device serial_devs[ARRAY_SIZE(uart_devs)];
 
 /*******************************************************************************/
-/* static fun */
+/* reg rw */
 
 rt_inline rt_uint32_t dw8250_read32(rt_ubase_t addr, rt_ubase_t offset)
 {
     return *((volatile rt_uint32_t *)(addr + (offset << UART_REG_SHIFT)));
 }
 
-rt_inline void dw8250_write32(rt_ubase_t addr, rt_ubase_t offset, rt_uint32_t value)
+rt_inline void        dw8250_write32(rt_ubase_t addr, rt_ubase_t offset, rt_uint32_t value)
 {
     *((volatile rt_uint32_t *)(addr + (offset << UART_REG_SHIFT))) = value;
 
-    if (offset == UART_LCR)
-    {
+    if (offset == UART_LCR) {
         int tries = 1000;
 
         /* Make sure LCR write wasn't ignored */
-        while (tries--)
-        {
+        while (tries--) {
             unsigned int lcr = dw8250_read32(addr, UART_LCR);
 
-            if ((value & ~UART_LCR_SPAR) == (lcr & ~UART_LCR_SPAR))
-            {
+            if ((value & ~UART_LCR_SPAR) == (lcr & ~UART_LCR_SPAR)) {
                 return;
             }
 
@@ -152,18 +173,23 @@ rt_inline void dw8250_write32(rt_ubase_t addr, rt_ubase_t offset, rt_uint32_t va
     }
 }
 
+/* reg rw */
+/*******************************************************************************/
+
+
+/*******************************************************************************/
+/* ops fun */
+
 static rt_err_t dw8250_uart_configure(struct rt_serial_device *serial, struct serial_configure *cfg)
 {
+    RT_UNUSED(cfg);
+
     rt_base_t base, rate;
     struct hw_uart_device *uart;
 
     RT_ASSERT(serial != RT_NULL);
     uart = (struct hw_uart_device *)serial->parent.user_data;
     base = uart->hw_base;
-
-#ifdef RT_USING_SMP
-    rt_spin_lock_init(&uart->spinlock);
-#endif
 
     /* Resset UART */
     dw8250_write32(base, UART_SSR, 1);
@@ -202,19 +228,18 @@ static rt_err_t dw8250_uart_control(struct rt_serial_device *serial, int cmd, vo
     RT_ASSERT(serial != RT_NULL);
     uart = (struct hw_uart_device *)serial->parent.user_data;
 
-    switch (cmd)
-    {
-        case RT_DEVICE_CTRL_CLR_INT:
-            /* Disable rx irq */
-            dw8250_write32(uart->hw_base, UART_IER, !UART_IER_RDI);
-            rt_hw_interrupt_mask(uart->irqno);
-            break;
+    switch (cmd) {
+    case RT_DEVICE_CTRL_CLR_INT:
+        /* Disable rx irq */
+        dw8250_write32(uart->hw_base, UART_IER, !UART_IER_RDI);
+        rt_hw_interrupt_mask(uart->irqno);
+        break;
 
-        case RT_DEVICE_CTRL_SET_INT:
-            /* Enable rx irq */
-            dw8250_write32(uart->hw_base, UART_IER, UART_IER_RDI);
-            rt_hw_interrupt_umask(uart->irqno);
-            break;
+    case RT_DEVICE_CTRL_SET_INT:
+        /* Enable rx irq */
+        dw8250_write32(uart->hw_base, UART_IER, UART_IER_RDI);
+        rt_hw_interrupt_umask(uart->irqno);
+        break;
     }
 
     return RT_EOK;
@@ -229,8 +254,7 @@ static int dw8250_uart_putc(struct rt_serial_device *serial, char c)
     uart = (struct hw_uart_device *)serial->parent.user_data;
     base = uart->hw_base;
 
-    while ((dw8250_read32(base, UART_LSR) & UART_LSR_THRE) == 0)
-    {
+    while ((dw8250_read32(base, UART_LSR) & UART_LSR_THRE) == 0) {
     }
 
     dw8250_write32(base, UART_TX, c);
@@ -248,56 +272,47 @@ static int dw8250_uart_getc(struct rt_serial_device *serial)
     uart = (struct hw_uart_device *)serial->parent.user_data;
     base = uart->hw_base;
 
-    if ((dw8250_read32(base, UART_LSR) & 0x1))
-    {
+    if ((dw8250_read32(base, UART_LSR) & 0x1)) {
         ch = dw8250_read32(base, UART_RX) & 0xff;
     }
 
     return ch;
 }
 
-static const struct rt_uart_ops _uart_ops =
-{
+static const struct rt_uart_ops _uart_ops = {
     dw8250_uart_configure,
     dw8250_uart_control,
     dw8250_uart_putc,
     dw8250_uart_getc,
 };
 
+/* ops fun */
+/*******************************************************************************/
+
+
 static void rt_hw_uart_isr(int irqno, void *param)
 {
     unsigned int iir, status;
     struct rt_serial_device *serial = (struct rt_serial_device *)param;
-    struct hw_uart_device *uart = (struct hw_uart_device *)serial->parent.user_data;
+    struct hw_uart_device   *uart   = (struct hw_uart_device *)serial->parent.user_data;
 
     iir = dw8250_read32(uart->hw_base, UART_IIR);
 
     /* If don't do this in non-DMA mode then the "RX TIMEOUT" interrupt will fire forever. */
-    if ((iir & 0x3f) == UART_IIR_RX_TIMEOUT)
-    {
-#ifdef RT_USING_SMP
-        rt_base_t level = rt_spin_lock_irqsave(&uart->spinlock);
-#endif
+    if ((iir & 0x3f) == UART_IIR_RX_TIMEOUT) {
 
         status = dw8250_read32(uart->hw_base, UART_LSR);
 
-        if (!(status & (UART_LSR_DR | UART_LSR_BI)))
-        {
+        if (!(status & (UART_LSR_DR | UART_LSR_BI))) {
             dw8250_read32(uart->hw_base, UART_RX);
         }
-
-#ifdef RT_USING_SMP
-        rt_spin_unlock_irqrestore(&uart->spinlock, level);
-#endif
     }
 
-    if (!(iir & UART_IIR_NO_INT))
-    {
+    if (!(iir & UART_IIR_NO_INT)) {
         rt_hw_serial_isr(serial, RT_SERIAL_EVENT_RX_IND);
     }
 
-    if ((iir & UART_IIR_BUSY) == UART_IIR_BUSY)
-    {
+    if ((iir & UART_IIR_BUSY) == UART_IIR_BUSY) {
         /* Clear the USR */
         dw8250_read32(uart->hw_base, UART_USR);
 
@@ -305,66 +320,28 @@ static void rt_hw_uart_isr(int irqno, void *param)
     }
 }
 
-/* static fun */
-/*******************************************************************************/
-
-
-
-
-
 int rt_hw_uart_init(void)
 {
+    rt_size_t i;
     struct hw_uart_device *uart;
+    struct rt_serial_device *serial;
     struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
 
     config.baud_rate = 1500000;
 
-#define BSP_INSTALL_UART_DEVICE(no)     \
-    uart = &_uart##no##_device;         \
-    _serial##no.ops    = &_uart_ops;    \
-    _serial##no.config = config;        \
-    rt_hw_serial_register(&_serial##no, "uart" #no, RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX, uart); \
-    rt_hw_interrupt_install(uart->irqno, rt_hw_uart_isr, &_serial##no, "uart" #no);
+    rt_kprintf("ARRAY_SIZE(uart_devs)=%d\n",ARRAY_SIZE(uart_devs));
 
-#ifdef RT_USING_UART0
-    BSP_INSTALL_UART_DEVICE(0);
-#endif
+    for (i = 0; i < ARRAY_SIZE(uart_devs); i++)
+    {
+        uart = &uart_devs[i];
+        serial = &serial_devs[i];
 
-#ifdef RT_USING_UART1
-    BSP_INSTALL_UART_DEVICE(1);
-#endif
+        serial->ops = &_uart_ops;
+        serial->config = config;
 
-#ifdef RT_USING_UART2
-    BSP_INSTALL_UART_DEVICE(2);
-#endif
-
-#ifdef RT_USING_UART3
-    BSP_INSTALL_UART_DEVICE(3);
-#endif
-
-#ifdef RT_USING_UART4
-    BSP_INSTALL_UART_DEVICE(4);
-#endif
-
-#ifdef RT_USING_UART5
-    BSP_INSTALL_UART_DEVICE(5);
-#endif
-
-#ifdef RT_USING_UART6
-    BSP_INSTALL_UART_DEVICE(6);
-#endif
-
-#ifdef RT_USING_UART7
-    BSP_INSTALL_UART_DEVICE(7);
-#endif
-
-#ifdef RT_USING_UART8
-    BSP_INSTALL_UART_DEVICE(8);
-#endif
-
-#ifdef RT_USING_UART9
-    BSP_INSTALL_UART_DEVICE(9);
-#endif
+        rt_hw_serial_register(serial, uart->name, RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX, uart);
+        rt_hw_interrupt_install(uart->irqno, rt_hw_uart_isr, serial, uart->name);
+    }
 
     return 0;
 }

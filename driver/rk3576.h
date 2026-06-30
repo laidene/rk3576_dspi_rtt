@@ -28,7 +28,7 @@
 #define UART8_MMIO_BASE     0x2adb0000
 #define UART9_MMIO_BASE     0x2adc0000
 #define UART10_MMIO_BASE    0x2afc0000
-#define UART11_MMIO_BASE    0x2afc0000
+#define UART11_MMIO_BASE    0x2afd0000
 
 /* key word: 1.3 system interrupt connection */
 #define UART0_IRQ           108

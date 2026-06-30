@@ -46,3 +46,5 @@ tags
 .history
 CMakeLists.txt
 cmake-build-debug
+.*
+kconfig-mconf
