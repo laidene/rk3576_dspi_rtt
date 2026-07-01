@@ -3,7 +3,12 @@
 #include <rtdevice.h>
 
 #include <board.h>
+#include <drv_cru.h>
+#include <drv_iomux.h>
 
+
+/*******************************************************************************/
+/* uart reg */
 
 #define UART_RX             0       /* In: Receive buffer */
 #define UART_TX             0       /* Out: Transmit buffer */
@@ -43,104 +48,140 @@
 #define UART_FCR_CLEAR_XMIT 0x04    /* Clear the XMIT FIFO */
 
 #define UART_REG_SHIFT      0x2     /* Register Shift*/
-#define UART_INPUT_CLK      24000000
+
+/* uart reg */
+/*******************************************************************************/
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+
 
 struct hw_uart_device {
     rt_ubase_t   hw_base;
     rt_uint32_t  irqno;
+    rt_uint32_t  id;
+    rt_uint32_t  mux_group;
     const char  *name;
 };
 
 
+
+/**
+ * @brief 串口配置(基地址，中断号，复用类型)
+ */
 static struct hw_uart_device   uart_devs[] = {
 #ifdef RT_USING_UART0
     {
-        .hw_base = UART0_MMIO_BASE,
-        .irqno = UART0_IRQ,
-        .name = "uart0",
+        .hw_base    = UART0_MMIO_BASE,
+        .irqno      = UART0_IRQ,
+        .id         = 0,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart0",
     },
 #endif
 #ifdef RT_USING_UART1
     {
-        .hw_base = UART1_MMIO_BASE,
-        .irqno   = UART1_IRQ,
-        .name = "uart1",
+        .hw_base    = UART1_MMIO_BASE,
+        .irqno      = UART1_IRQ,
+        .id         = 1,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart1",
     },
 #endif
 #ifdef RT_USING_UART2
     {
-        .hw_base = UART2_MMIO_BASE,
-        .irqno = UART2_IRQ,
-        .name = "uart2",
+        .hw_base    = UART2_MMIO_BASE,
+        .irqno      = UART2_IRQ,
+        .id         = 2,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart2",
     },
 #endif
 #ifdef RT_USING_UART3
     {
-        .hw_base = UART3_MMIO_BASE,
-        .irqno   = UART3_IRQ,
-        .name = "uart3",
+        .hw_base    = UART3_MMIO_BASE,
+        .irqno      = UART3_IRQ,
+        .id         = 3,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart3",
     },
 #endif
 #ifdef RT_USING_UART4
     {
-        .hw_base = UART4_MMIO_BASE,
-        .irqno   = UART4_IRQ,
-        .name = "uart4",
+        .hw_base    = UART4_MMIO_BASE,
+        .irqno      = UART4_IRQ,
+        .id         = 4,
+        .mux_group  = RK3576_UART_M0,
+        .name        "uart4",
     },
 #endif
 #ifdef RT_USING_UART5
     {
-        .hw_base = UART5_MMIO_BASE,
-        .irqno   = UART5_IRQ,
-        .name = "uart5",
+        .hw_base    = UART5_MMIO_BASE,
+        .irqno      = UART5_IRQ,
+        .id         = 5,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart5",
     },
 #endif
 #ifdef RT_USING_UART6
     {
-        .hw_base = UART6_MMIO_BASE,
-        .irqno   = UART6_IRQ,
-        .name = "uart6",
+        .hw_base    = UART6_MMIO_BASE,
+        .irqno      = UART6_IRQ,
+        .id         = 6,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart6",
     },
 #endif
 #ifdef RT_USING_UART7
     {
-        .hw_base = UART7_MMIO_BASE,
-        .irqno   = UART7_IRQ,
-        .name = "uart7",
+        .hw_base    = UART7_MMIO_BASE,
+        .irqno      = UART7_IRQ,
+        .id         = 7,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart7",
     },
 #endif
 #ifdef RT_USING_UART8
     {
-        .hw_base = UART8_MMIO_BASE,
-        .irqno   = UART8_IRQ,
-        .name = "uart8",
+        .hw_base    = UART8_MMIO_BASE,
+        .irqno      = UART8_IRQ,
+        .id         = 8,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart8",
     },
 #endif
 #ifdef RT_USING_UART9
     {
-        .hw_base = UART9_MMIO_BASE,
-        .irqno   = UART9_IRQ,
-        .name = "uart9",
+        .hw_base    = UART9_MMIO_BASE,
+        .irqno      = UART9_IRQ,
+        .id         = 9,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart9",
     },
 #endif
 #ifdef RT_USING_UART10
     {
-        .hw_base = UART10_MMIO_BASE,
-        .irqno   = UART10_IRQ,
-        .name = "uart10",
+        .hw_base    = UART10_MMIO_BASE,
+        .irqno      = UART10_IRQ,
+        .id         = 10,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart10",
     },
 #endif
 #ifdef RT_USING_UART11
     {
-        .hw_base = UART11_MMIO_BASE,
-        .irqno  = UART11_IRQ,
-        .name = "uart11",
+        .hw_base    = UART11_MMIO_BASE,
+        .irqno      = UART11_IRQ,
+        .id         = 11,
+        .mux_group  = RK3576_UART_M0,
+        .name       = "uart11",
     },
 #endif
 };
+
 static struct rt_serial_device serial_devs[ARRAY_SIZE(uart_devs)];
+
 
 /*******************************************************************************/
 /* reg rw */
@@ -184,12 +225,43 @@ static rt_err_t dw8250_uart_configure(struct rt_serial_device *serial, struct se
 {
     RT_UNUSED(cfg);
 
-    rt_base_t base, rate;
-    struct hw_uart_device *uart;
+    rt_base_t               base;
+    rt_uint32_t             baud_rate, target_clk, uart_clk, divisor;
+    rt_err_t                ret;
+    struct hw_uart_device  *uart;
 
     RT_ASSERT(serial != RT_NULL);
-    uart = (struct hw_uart_device *)serial->parent.user_data;
-    base = uart->hw_base;
+    uart        = (struct hw_uart_device *)serial->parent.user_data;
+    base        = uart->hw_base;
+    baud_rate   = serial->config.baud_rate;
+
+    ret = rk3576_uart_iomux_init(uart->id, uart->mux_group);
+    if (ret != RT_EOK) {
+        return ret;
+    }
+
+    ret = rk3576_cru_uart_enable(uart->id);
+    if (ret != RT_EOK) {
+        return ret;
+    }
+
+    if (baud_rate <= 115200) {
+        target_clk = RK3576_OSC_HZ;
+    } else if ((baud_rate == 230400) || (baud_rate == 1152000)) {
+        target_clk = baud_rate * 16U * 2U;
+    } else {
+        target_clk = baud_rate * 16U;
+    }
+
+    uart_clk = rk3576_cru_set_uart_clk(uart->id, target_clk);
+    if (uart_clk == 0) {
+        uart_clk = RK3576_OSC_HZ;
+    }
+
+    divisor = (uart_clk + (baud_rate * 8U)) / (baud_rate * 16U);
+    if (divisor == 0) {
+        divisor = 1;
+    }
 
     /* Resset UART */
     dw8250_write32(base, UART_SSR, 1);
@@ -203,12 +275,10 @@ static rt_err_t dw8250_uart_configure(struct rt_serial_device *serial, struct se
     /* Clear RTS */
     dw8250_write32(base, UART_MCR, dw8250_read32(base, UART_MCR) | UART_MCR_RTS);
 
-    rate = UART_INPUT_CLK / 16 / serial->config.baud_rate;
-
     /* Enable access DLL & DLH */
     dw8250_write32(base, UART_LCR, dw8250_read32(base, UART_LCR) | UART_LCR_DLAB);
-    dw8250_write32(base, UART_DLL, (rate & 0xff));
-    dw8250_write32(base, UART_DLM, (rate & 0xff00) >> 8);
+    dw8250_write32(base, UART_DLL, (divisor & 0xff));
+    dw8250_write32(base, UART_DLM, (divisor & 0xff00) >> 8);
     /* Clear DLAB bit */
     dw8250_write32(base, UART_LCR, dw8250_read32(base, UART_LCR) & (~UART_LCR_DLAB));
 
@@ -320,23 +390,22 @@ static void rt_hw_uart_isr(int irqno, void *param)
     }
 }
 
+
+
 int rt_hw_uart_init(void)
 {
     rt_size_t i;
-    struct hw_uart_device *uart;
+    struct hw_uart_device   *uart;
     struct rt_serial_device *serial;
-    struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
+    struct serial_configure  config = RT_SERIAL_CONFIG_DEFAULT;
 
     config.baud_rate = 1500000;
 
-    rt_kprintf("ARRAY_SIZE(uart_devs)=%d\n",ARRAY_SIZE(uart_devs));
-
-    for (i = 0; i < ARRAY_SIZE(uart_devs); i++)
-    {
-        uart = &uart_devs[i];
+    for (i = 0; i < ARRAY_SIZE(uart_devs); i++) {
+        uart   = &uart_devs[i];
         serial = &serial_devs[i];
 
-        serial->ops = &_uart_ops;
+        serial->ops    = &_uart_ops;
         serial->config = config;
 
         rt_hw_serial_register(serial, uart->name, RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_INT_RX, uart);

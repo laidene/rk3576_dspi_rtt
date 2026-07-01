@@ -19,6 +19,7 @@
 #include <interrupt.h>
 
 #include <board.h>
+#include <drv_cru.h>
 #include <drv_uart.h>
 
 struct mem_desc platform_mem_desc[] =
@@ -27,6 +28,9 @@ struct mem_desc platform_mem_desc[] =
     {UART0_MMIO_BASE,   UART0_MMIO_BASE + 0x10000,  UART0_MMIO_BASE,    DEVICE_MEM},
     {UART1_MMIO_BASE,   UART1_MMIO_BASE + 0x10000,  UART1_MMIO_BASE,    DEVICE_MEM},
     {UART2_MMIO_BASE,   UART2_MMIO_BASE + 0x80000,  UART2_MMIO_BASE,    DEVICE_MEM},
+    {UART10_MMIO_BASE,  UART10_MMIO_BASE + 0x20000, UART10_MMIO_BASE,   DEVICE_MEM},
+    {CRU_MMIO_BASE,     CRU_MMIO_BASE + CRU_MMIO_SIZE, CRU_MMIO_BASE,   DEVICE_MEM},
+    {IOC_GRF_MMIO_BASE, IOC_GRF_MMIO_BASE + IOC_GRF_MMIO_SIZE, IOC_GRF_MMIO_BASE, DEVICE_MEM},
     {GIC_PL400_GICD,    GIC_PL400_GICD  + 0x10000,  GIC_PL400_GICD,     DEVICE_MEM},
     {GIC_PL400_GICC,    GIC_PL400_GICC  + 0x10000,  GIC_PL400_GICC,     DEVICE_MEM},
 };
@@ -45,6 +49,8 @@ void rt_hw_board_init(void)
 
     /* initialize hardware interrupt */
     rt_hw_interrupt_init();
+    /* initialize cru */
+    rk3576_cru_init();
     /* initialize uart */
     rt_hw_uart_init();
     /* initialize timer for os tick */

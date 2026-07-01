@@ -45,6 +45,14 @@ menu "Hardware Drivers Config"
             config RT_USING_UART9
                 bool "Enable UART 9"
                 default n
+
+            config RT_USING_UART10
+                bool "Enable UART 10"
+                default n
+
+            config RT_USING_UART11
+                bool "Enable UART 11"
+                default n
         endif
 
     config BSP_USING_GIC
