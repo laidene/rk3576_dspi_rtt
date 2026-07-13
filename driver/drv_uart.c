@@ -112,7 +112,7 @@ static struct hw_uart_device   uart_devs[] = {
         .irqno      = UART4_IRQ,
         .id         = 4,
         .mux_group  = RK3576_UART_M0,
-        .name        "uart4",
+        .name       = "uart4",
     },
 #endif
 #ifdef RT_USING_UART5

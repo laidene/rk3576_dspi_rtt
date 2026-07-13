@@ -197,6 +197,7 @@
 
 #define BSP_USING_UART
 #define RT_USING_UART0
+#define RT_USING_UART7
 #define BSP_USING_GIC
 #define BSP_USING_GICV2
 
