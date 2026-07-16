@@ -63,4 +63,17 @@ menu "Hardware Drivers Config"
             bool
             default y
 
+    config BSP_USING_GMAC0
+        bool "Enable GMAC0 (RGMII, Motorcomm YT8521/YT8531S)"
+        select RT_USING_LWIP
+        select RT_USING_NETDEV
+        select RT_USING_SAL
+        default n
+
+    if BSP_USING_GMAC0
+        config BSP_GMAC0_MAC_ADDRESS
+            string "GMAC0 MAC address"
+            default "02:35:76:00:00:01"
+    endif
+
 endmenu

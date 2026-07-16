@@ -20,19 +20,24 @@
 
 #include <board.h>
 #include <drv_cru.h>
+#include <drv_gmac.h>
 #include <drv_uart.h>
 
 struct mem_desc platform_mem_desc[] =
 {
-    {0x40000000,        0x80000000,                 0x40000000,         NORMAL_MEM},
-    {UART0_MMIO_BASE,   UART0_MMIO_BASE + 0x10000,  UART0_MMIO_BASE,    DEVICE_MEM},
-    {UART1_MMIO_BASE,   UART1_MMIO_BASE + 0x10000,  UART1_MMIO_BASE,    DEVICE_MEM},
-    {UART2_MMIO_BASE,   UART2_MMIO_BASE + 0x80000,  UART2_MMIO_BASE,    DEVICE_MEM},
-    {UART10_MMIO_BASE,  UART10_MMIO_BASE + 0x20000, UART10_MMIO_BASE,   DEVICE_MEM},
-    {CRU_MMIO_BASE,     CRU_MMIO_BASE + CRU_MMIO_SIZE, CRU_MMIO_BASE,   DEVICE_MEM},
-    {IOC_GRF_MMIO_BASE, IOC_GRF_MMIO_BASE + IOC_GRF_MMIO_SIZE, IOC_GRF_MMIO_BASE, DEVICE_MEM},
-    {GIC_PL400_GICD,    GIC_PL400_GICD  + 0x10000,  GIC_PL400_GICD,     DEVICE_MEM},
-    {GIC_PL400_GICC,    GIC_PL400_GICC  + 0x10000,  GIC_PL400_GICC,     DEVICE_MEM},
+    {0x40000000,            0x80000000,                                 0x40000000,                             NORMAL_MEM},
+    {UART0_MMIO_BASE,       UART0_MMIO_BASE  + 0x10000,                 UART0_MMIO_BASE,                        DEVICE_MEM},
+    {UART1_MMIO_BASE,       UART1_MMIO_BASE  + 0x10000,                 UART1_MMIO_BASE,                        DEVICE_MEM},
+    {UART2_MMIO_BASE,       UART2_MMIO_BASE  + 0x80000,                 UART2_MMIO_BASE,                        DEVICE_MEM},
+    {UART10_MMIO_BASE,      UART10_MMIO_BASE + 0x20000,                 UART10_MMIO_BASE,                       DEVICE_MEM},
+    {CRU_MMIO_BASE,         CRU_MMIO_BASE + CRU_MMIO_SIZE,              CRU_MMIO_BASE,                          DEVICE_MEM},
+    {IOC_GRF_MMIO_BASE,     IOC_GRF_MMIO_BASE + IOC_GRF_MMIO_SIZE,      IOC_GRF_MMIO_BASE,                      DEVICE_MEM},
+#ifdef BSP_USING_GMAC0
+    {GMAC0_MMIO_BASE,       GMAC0_MMIO_BASE + GMAC_MMIO_SIZE,           GMAC0_MMIO_BASE,                        DEVICE_MEM},
+    {GMAC_DMA_ALIAS_BASE,   GMAC_DMA_ALIAS_BASE + GMAC_DMA_ALIAS_SIZE,  (unsigned long)rk3576_gmac_dma_pool,    NORMAL_NOCACHE_MEM},
+#endif
+    {GIC_PL400_GICD,        GIC_PL400_GICD  + 0x10000,                  GIC_PL400_GICD,                         DEVICE_MEM},
+    {GIC_PL400_GICC,        GIC_PL400_GICC  + 0x10000,                  GIC_PL400_GICC,                         DEVICE_MEM},
 };
 
 const rt_uint32_t platform_mem_desc_size = sizeof(platform_mem_desc) / sizeof(platform_mem_desc[0]);

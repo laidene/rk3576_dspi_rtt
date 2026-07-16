@@ -51,7 +51,7 @@
 /* cru */
 
 /* key word: 2.1 address mapping */
-#define CRU_MMIO_BASE       0x27200000UL
+#define CRU_MMIO_BASE       0x27200000UL    /* CRU_BPLL_CON<X> */
 #define CRU_MMIO_SIZE       0x50000UL
 
 /* cru */
@@ -62,8 +62,11 @@
 /* iomux */
 
 /* key word: PMU0_IOC */
-#define IOC_GRF_MMIO_BASE  0x26040000UL
+#define IOC_GRF_MMIO_BASE  0x26040000UL     /* PMU0_IOC_GPIO0A */
 #define IOC_GRF_MMIO_SIZE  0x0000c000UL
+
+#define SDGMAC_GRF_MMIO_BASE  0x26038000UL  /* SDGMAC_GRF */
+#define SDGMAC_GRF_MMIO_SIZE  0x00001000UL
 
 /* iomux */
 /*******************************************************************************/
@@ -78,6 +81,7 @@
 #define GPIO2_MMIO_BASE     0x2ae20000
 #define GPIO3_MMIO_BASE     0x2ae30000
 #define GPIO4_MMIO_BASE     0x2ae40000
+#define GPIO_MMIO_SIZE      0x00010000UL
 
 #define GPIO0_0_IRQ         185
 #define GPIO0_1_IRQ         186
@@ -128,6 +132,14 @@
 /* key word: 12.4.1 internal address mapping */
 #define GMAC0_MMIO_BASE         0x2a220000
 #define GMAC1_MMIO_BASE         0x2a230000
+#define GMAC_MMIO_SIZE          0x00010000UL
+
+#define PMU_MMIO_BASE           0x27380000UL    /* PMU_SCU0_PWR_CON */
+#define PMU_MMIO_SIZE           0x00010000UL
+
+/* CPU-only uncached alias for GMAC DMA descriptors and packet buffers. */
+#define GMAC_DMA_ALIAS_BASE     0x80000000UL
+#define GMAC_DMA_ALIAS_SIZE     0x00200000UL
 
 #define GMAC0_LPI_IRQ           324
 #define GMAC0_SBD_IRQ           325

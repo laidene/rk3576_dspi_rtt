@@ -65,5 +65,6 @@ rt_err_t rk3576_drive_set  (rt_uint32_t bank, rt_uint32_t pin, rt_uint32_t level
 rt_err_t rk3576_schmitt_set(rt_uint32_t bank, rt_uint32_t pin, rt_bool_t enable);
 
 rt_err_t rk3576_uart_iomux_init(rt_uint32_t id, rt_uint32_t mux_group);
+rt_err_t rk3576_gmac0_iomux_init(void);
 
 #endif /* __DRV_IOMUX_H__ */

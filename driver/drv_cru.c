@@ -368,3 +368,38 @@ rt_uint32_t rk3576_cru_set_uart_clk(rt_uint32_t id, rt_uint32_t rate)
 
     return rk3576_cru_get_uart_clk(id);
 }
+
+
+/**
+ * @brief 使能gmac0的时钟
+ * @param  
+ * @return 
+ */
+rt_err_t rk3576_cru_gmac0_enable(void)
+{
+    /* 125 MHz RGMII source mac与phy传输 */
+    rk3576_cru_hiword_update(RK3576_CLKSEL_CON(30), 0x1fU << 10, 7U << 10); /* CLK_GMAC0_125M_SRC */
+    rk3576_cru_gate_enable(RK3576_CLKGATE_CON(3), 6);
+
+    /* ACLK_GMAC0 and its parent dma访问内存 */
+    rk3576_cru_gate_enable(RK3576_CLKGATE_CON(42), 1);                      /* ACLK_GMAC0 */
+    rk3576_cru_gate_enable(RK3576_CLKGATE_CON(42), 7);
+
+    /* PCLK_GMAC0 and its parent cpu访问寄存器 */
+    rk3576_cru_gate_enable(RK3576_CLKGATE_CON(42), 2);                      /* PCLK_GMAC0 */
+    rk3576_cru_gate_enable(RK3576_CLKGATE_CON(42), 9);
+
+    /* GPIO0 is used for the external PHY reset. */
+    rk3576_cru_gate_enable(RK3576_PMU_CLKGATE_CON(7), 6);
+
+    return RT_EOK;
+}
+
+void rk3576_cru_gmac0_reset(void)
+{
+    /* SRST_A_GMAC0 is reset id 679: SOFTRST_CON42 bit 7. */
+    rk3576_cru_reset_assert(RK3576_SOFTRST_CON(42), 7);     /* CRU_SOFTRST_CON42 */
+    rt_thread_mdelay(1);
+    rk3576_cru_reset_deassert(RK3576_SOFTRST_CON(42), 7);   /* CRU_SOFTRST_CON42 */
+    rt_thread_mdelay(1);
+}

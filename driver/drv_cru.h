@@ -15,9 +15,9 @@
 #define RK3576_CPLL_HZ     1000000000UL
 #define RK3576_AUPLL_HZ    786432000UL
 
-#define RK3576_CLKSEL_CON(n)      (0x0300U + ((n) * 4U))        /* CRU_CLKSEL_CONX */
-#define RK3576_CLKGATE_CON(n)     (0x0800U + ((n) * 4U))        /* CRU_GATE_CONX */
-#define RK3576_SOFTRST_CON(n)     (0x0a00U + ((n) * 4U))
+#define RK3576_CLKSEL_CON(n)      (0x0300U + ((n) * 4U))        /* CRU_CLKSEL_CON<X> */
+#define RK3576_CLKGATE_CON(n)     (0x0800U + ((n) * 4U))        /* CRU_GATE_CON<X> */
+#define RK3576_SOFTRST_CON(n)     (0x0a00U + ((n) * 4U))        /* CRU_SOFTRST_CON<X> */
 
 #define RK3576_PMU1CRU_OFFSET     0x20000U
 #define RK3576_PMU_CLKSEL_CON(n)  (RK3576_PMU1CRU_OFFSET + 0x0300U + ((n) * 4U))
@@ -37,5 +37,8 @@ void rk3576_cru_reset_deassert(rt_uint32_t offset, rt_uint32_t bit);
 rt_err_t   rk3576_cru_uart_enable  (rt_uint32_t id);
 rt_uint32_t rk3576_cru_get_uart_clk(rt_uint32_t id);
 rt_uint32_t rk3576_cru_set_uart_clk(rt_uint32_t id, rt_uint32_t rate);
+
+rt_err_t rk3576_cru_gmac0_enable(void);
+void     rk3576_cru_gmac0_reset(void);
 
 #endif /* __DRV_CRU_H__ */

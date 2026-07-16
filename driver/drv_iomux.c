@@ -403,3 +403,33 @@ rt_err_t rk3576_uart_iomux_init(rt_uint32_t id, rt_uint32_t mux_group)
 }
 
 
+/**
+ * @brief YT8521S 的引脚复用
+ * @param  
+ * @return 
+ */
+rt_err_t rk3576_gmac0_iomux_init(void)
+{
+    static const rt_uint8_t pins[] = {
+        RK_PA6, RK_PA5, RK_PA7, RK_PB2, RK_PB1, RK_PB3, RK_PB5,
+        RK_PB4, RK_PD1, RK_PB6, RK_PD3, RK_PD2, RK_PC3, RK_PC2,
+    };
+    rt_size_t i;
+    rt_err_t ret;
+
+    for (i = 0; i < sizeof(pins) / sizeof(pins[0]); i++) {
+        ret = rk3576_iomux_set(3, pins[i], 3);
+        if (ret != RT_EOK) {
+            return ret;
+        }
+
+        ret = rk3576_pull_set(3, pins[i], RK3576_PULL_NONE);
+        if (ret != RT_EOK) {
+            return ret;
+        }
+    }
+
+    /* GPIO0_C2 drives the active-low PHY reset input. */
+    return rk3576_iomux_set(0, RK_PC2, 0);
+}
+
