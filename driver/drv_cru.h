@@ -38,7 +38,4 @@ rt_err_t   rk3576_cru_uart_enable  (rt_uint32_t id);
 rt_uint32_t rk3576_cru_get_uart_clk(rt_uint32_t id);
 rt_uint32_t rk3576_cru_set_uart_clk(rt_uint32_t id, rt_uint32_t rate);
 
-rt_err_t rk3576_cru_gmac0_enable(void);
-void     rk3576_cru_gmac0_reset(void);
-
 #endif /* __DRV_CRU_H__ */

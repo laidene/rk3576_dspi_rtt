@@ -405,7 +405,6 @@
 #define BSP_USING_GIC
 #define BSP_USING_GICV2
 #define BSP_USING_GMAC0
-#define BSP_GMAC0_MAC_ADDRESS "02:35:76:00:00:01"
 /* end of Hardware Drivers Config */
 
 #endif

@@ -20,7 +20,7 @@
 
 #include <board.h>
 #include <drv_cru.h>
-#include <drv_gmac.h>
+#include <gmac/drv_gmac.h>
 #include <drv_uart.h>
 
 struct mem_desc platform_mem_desc[] =
