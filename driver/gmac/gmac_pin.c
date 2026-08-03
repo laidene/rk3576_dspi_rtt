@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <gpio/drv_gpio.h>
 #include <drv_iomux.h>
 
 #include "gmac_internal.h"
@@ -12,21 +13,7 @@
 #define VCCIO_IOC_MISC_CON2    0x6408U  /* GMAC0 M0的RGMII RX/TX时钟延时控制寄存器偏移 */
 #define VCCIO_IOC_MISC_CON3    0x640cU  /* GMAC0 M1的RGMII RX/TX时钟延时控制寄存器偏移 */
 #define GMAC0_TX_DELAY         0x1bU    /* TX时钟延时链的档位值：27 */
-
-#define GPIO_SWPORT_DR_H       0x0004U      /* GPIO 16~31输出电平寄存器偏移，GPIO0_C2使用数据位2 */
-#define GPIO_SWPORT_DDR_H      0x000cU      /* GPIO 16~31方向寄存器偏移：1为输出，0为输入 */
-#define GPIO0_C2_HIGH_REG_BIT  GMAC_BIT(2)  /* GPIO0_C2编号为18，在高半区寄存器中对应位2 */
-
-static void gmac_gpio0_c2_set(rt_bool_t high)
-{
-    rt_uint32_t value = GPIO0_C2_HIGH_REG_BIT << 16;
-
-    if (high) {
-        value |= GPIO0_C2_HIGH_REG_BIT;
-    }
-
-    HWREG32(GPIO0_MMIO_BASE + GPIO_SWPORT_DR_H) = value;
-}
+#define GMAC0_PHY_RESET_PIN    RK3576_GPIO_PIN(0U, RK_PC2)
 
 /* 设置rgmii模式 设置收发延迟 */
 static void gmac_rgmii_configure(void)
@@ -90,11 +77,11 @@ rt_err_t rk3576_gmac_pins_init(void)
 void rk3576_gmac_phy_reset(void)
 {
     /* Preload low before switching the pin to output to avoid a high glitch. */
-    gmac_gpio0_c2_set(RT_FALSE);
-    HWREG32(GPIO0_MMIO_BASE + GPIO_SWPORT_DDR_H) = (GPIO0_C2_HIGH_REG_BIT << 16) | GPIO0_C2_HIGH_REG_BIT;
+    rt_pin_write(GMAC0_PHY_RESET_PIN, PIN_LOW);
+    rt_pin_mode(GMAC0_PHY_RESET_PIN, PIN_MODE_OUTPUT);
     rt_thread_mdelay(20);
 
     /* ETH0_RESET_N is active-low; drive high to release the PHY reset. */
-    gmac_gpio0_c2_set(RT_TRUE);
+    rt_pin_write(GMAC0_PHY_RESET_PIN, PIN_HIGH);
     rt_thread_mdelay(100);
 }

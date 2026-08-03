@@ -20,6 +20,7 @@
 
 #include <board.h>
 #include <drv_cru.h>
+#include <gpio/drv_gpio.h>
 #include <gmac/drv_gmac.h>
 #include <drv_uart.h>
 
@@ -32,6 +33,13 @@ struct mem_desc platform_mem_desc[] =
     {UART10_MMIO_BASE,      UART10_MMIO_BASE + 0x20000,                 UART10_MMIO_BASE,                       DEVICE_MEM},
     {CRU_MMIO_BASE,         CRU_MMIO_BASE + CRU_MMIO_SIZE,              CRU_MMIO_BASE,                          DEVICE_MEM},
     {IOC_GRF_MMIO_BASE,     IOC_GRF_MMIO_BASE + IOC_GRF_MMIO_SIZE,      IOC_GRF_MMIO_BASE,                      DEVICE_MEM},
+#ifdef BSP_USING_GPIO
+    {GPIO0_MMIO_BASE,       GPIO0_MMIO_BASE + GPIO_MMIO_SIZE,           GPIO0_MMIO_BASE,                        DEVICE_MEM},
+    {GPIO1_MMIO_BASE,       GPIO1_MMIO_BASE + GPIO_MMIO_SIZE,           GPIO1_MMIO_BASE,                        DEVICE_MEM},
+    {GPIO2_MMIO_BASE,       GPIO2_MMIO_BASE + GPIO_MMIO_SIZE,           GPIO2_MMIO_BASE,                        DEVICE_MEM},
+    {GPIO3_MMIO_BASE,       GPIO3_MMIO_BASE + GPIO_MMIO_SIZE,           GPIO3_MMIO_BASE,                        DEVICE_MEM},
+    {GPIO4_MMIO_BASE,       GPIO4_MMIO_BASE + GPIO_MMIO_SIZE,           GPIO4_MMIO_BASE,                        DEVICE_MEM},
+#endif
 #ifdef BSP_USING_GMAC0
     {GMAC0_MMIO_BASE,       GMAC0_MMIO_BASE + GMAC_MMIO_SIZE,           GMAC0_MMIO_BASE,                        DEVICE_MEM},
     {GMAC_DMA_ALIAS_BASE,   GMAC_DMA_ALIAS_BASE + GMAC_DMA_ALIAS_SIZE,  (unsigned long)rk3576_gmac_dma_pool,    NORMAL_NOCACHE_MEM},
@@ -56,6 +64,10 @@ void rt_hw_board_init(void)
     rt_hw_interrupt_init();
     /* initialize cru */
     rk3576_cru_init();
+#ifdef BSP_USING_GPIO
+    /* initialize gpio */
+    rt_hw_gpio_init();
+#endif
     /* initialize uart */
     rt_hw_uart_init();
     /* initialize timer for os tick */

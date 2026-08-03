@@ -36,9 +36,6 @@ rt_err_t rk3576_gmac_clock_enable(void)
     rk3576_cru_gate_enable(RK3576_CLKGATE_CON(42), 2);
     rk3576_cru_gate_enable(RK3576_CLKGATE_CON(42), 9);
 
-    /* GPIO0 复位引脚时钟 */
-    rk3576_cru_gate_enable(RK3576_PMU_CLKGATE_CON(7), 6);
-
     return RT_EOK;
 }
 

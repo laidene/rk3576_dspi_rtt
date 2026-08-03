@@ -1,5 +1,15 @@
 menu "Hardware Drivers Config"
 
+    config BSP_USING_GPIO
+        bool "Enable GPIO"
+        select RT_USING_PIN
+        default y
+
+    config BSP_USING_WS2812
+        bool "Enable onboard WS2812 RGB LEDs"
+        select BSP_USING_GPIO
+        default y
+
     menuconfig BSP_USING_UART
         bool "Using UART"
         select RT_USING_SERIAL
@@ -65,6 +75,7 @@ menu "Hardware Drivers Config"
 
     config BSP_USING_GMAC0
         bool "Enable GMAC0 (RGMII, Motorcomm YT8521/YT8531S)"
+        select BSP_USING_GPIO
         select RT_USING_LWIP
         select RT_USING_NETDEV
         select RT_USING_SAL
